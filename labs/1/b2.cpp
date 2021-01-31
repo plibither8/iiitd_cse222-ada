@@ -3,11 +3,12 @@
 #include <algorithm>
 #include <utility>
 #include <cmath>
-#define MAX_SIZE 100100
+#define MAX_SIZE 200100
 #define INF 99999999.999999
 using namespace std;
-typedef pair<double, double> point;
-typedef long long int ll;
+typedef long long ll;
+typedef long double ld;
+typedef pair<ll, ll> point;
 
 point P[MAX_SIZE];
 // point Q[MAX_SIZE];
@@ -17,64 +18,67 @@ bool comp(const point &a, const point &b)
   return a.second > b.second;
 }
 
-double dist(point A, point B)
+ld dist(point A, point B)
 {
-  double d = sqrt(((A.first-B.first)*(A.first-B.first)) + ((A.second-B.second)*(A.second-B.second)));
+  ld d = sqrtl(((A.first-B.first)*(A.first-B.first)) + ((A.second-B.second)*(A.second-B.second)));
   return d;
 }
 
-double calculate_perimeter(point A, point B, point C)
+ld calculate_perimeter(point A, point B, point C)
 {
-  double AB = dist(A, B);
-  double BC = dist(B, C);
-  double AC = dist(C, A);
+  ld AB = dist(A, B);
+  ld BC = dist(B, C);
+  ld AC = dist(C, A);
+
   return AB + BC + AC;
 }
 
-double min_perimeter_strip(point Q[], int n, int p)
+ld min_perimeter_strip(point Q[], int n, ld p)
 {
-  double minimum = p; // inf
-  sort(Q, Q + n, comp); // sort points according to y coordinate desc
-  // [(0, 1), (0, 0), (1, 0)]
-  for (int i = 0; i < n; i++)
-  {
-    int window = min(n-i, 20);
-    for (int j = 1; j < window; j++)
-    {
-      for (int k = j + 1; k < window; k++)
-      {
-        minimum = min(minimum, calculate_perimeter(Q[i], Q[i+j], Q[i+k])); 
+  ld minimum = p;
+  // sort points according to y coordinate in descending order
+  sort(Q, Q + n, comp);
+  for (int i = 0; i < n; i++) {
+    for (int j = i + 1; (j < n && abs(Q[i].second - Q[j].second) < minimum); j++) {
+      for (int k = j + 1; (k < n && abs(Q[j].second - Q[k].second) < minimum); k++) {
+        minimum = min(minimum, calculate_perimeter(Q[i], Q[j], Q[k]));
       }
     }
   }
   return minimum;
 }
 
-double min_perimeter(point P[], int n)
+ld min_perimeter(point P[], int n)
 {
-  if (n < 3)
+  if (n < 5)  // ? O(1)
   {
-    return INF;
+    ld p = INF;
+    for (int i = 0; i < n; i++) {
+      for (int j = i + 1; j < n; j++) {
+        for (int k = j + 1; k < n; k++) {
+          p = min(p, calculate_perimeter(P[i], P[j], P[k]));
+        }
+      }
+    }
+    return p;
   }
   else
   {
     int mid = n / 2;
-    point mid_point = P[mid]; // (0, 1)
+    point mid_point = P[mid];
 
-    double pl = min_perimeter(P, mid); // [(0,0)] => INF
-    double pr = min_perimeter(P + mid, n - mid); // [(0,1),(1,0)] => INF
+    ld pl = min_perimeter(P, mid);
+    ld pr = min_perimeter(P + mid, n - mid);
 
-    double p = min(pl, pr); // => INF
+    ld p = min(pl, pr);
 
-    point strip[MAX_SIZE];
+    point strip[n];
     int j = 0;
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i < n; i++) // ? O(n)
     {
-      if (abs(P[i].first - mid_point.first) < p / 2)
+      if (abs(P[i].first - mid_point.first) <= p / 2)
       {
-        strip[j].first = P[i].first;
-        strip[j].second = P[i].second;
-        // strip[j].first = P[i].second;
+        strip[j] = P[i];
         j++;
       }
     }
@@ -87,11 +91,13 @@ int main()
   int n;
   scanf("%d", &n);
   for (int i = 0; i < n; i++)
-    scanf("%lf %lf", &P[i].first, &P[i].second);
+  {
+    scanf("%lld %lld", &P[i].first, &P[i].second);
+  }
 
   sort(P, P + n);  // X-coordinate first | sorted by X
-  double ans = min_perimeter(P, n);
-  printf("%.7lf\n", ans);
+  ld ans = min_perimeter(P, n);
+  printf("%.7Lf\n", ans);
 
   return 0;
 }
